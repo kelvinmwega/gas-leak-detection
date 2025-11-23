@@ -13,19 +13,19 @@ block-beta
   columns 3
 
   block:Sensors["SENSOR LAYER"]:1
-    MQ2["MQ-2 Gas Sensor\n(Digital Pin 4)"]
+    MQ2["MQ-2 Gas Sensor (Digital Pin 4)"]
   end
 
   block:Controller["CONTROL LAYER"]:1
-    Arduino["Arduino Uno/Nano\n• ATmega328P\n• 16 MHz\n• 5V Logic"]
+    Arduino["Arduino Uno/Nano • ATmega328P • 16 MHz • 5V Logic"]
     space
-    Logic["Detection Logic\n• Debouncing\n• Threshold Check\n• State Machine"]
+    Logic["Detection Logic • Debouncing • Threshold Check • State Machine"]
   end
 
   block:Output["OUTPUT LAYER"]:1
-    Visual["Visual Alerts\n━━━━━━━━\nGreen LED (Pin 2)\nRed LED (Pin 3)\nLCD Display (I2C)"]
+    Visual["Visual Alerts ━━━━━━━━ Green LED (Pin 2) Red LED (Pin 3) LCD Display (I2C)"]
     space
-    Serial["Serial UART\n━━━━━━━━\n9600 baud\nLogging/Monitor"]
+    Serial["Serial UART ━━━━━━━━ 9600 baud Logging/Monitor"]
   end
 
   MQ2 --> Arduino
@@ -75,7 +75,7 @@ graph TB
   end
 
   subgraph Display["📺 DISPLAY MODULE"]
-    LCD[16×2 I2C LCD\nAddress: 0x27]
+    LCD[16×2 I2C LCD Address: 0x27]
     LCD_SDA[SDA]
     LCD_SCL[SCL]
     LCD_VCC[VCC]
@@ -135,8 +135,8 @@ graph LR
     direction TB
     A1[Air Sample]
     A2[MQ-2 Chemiresistor]
-    A3[Analog-to-Digital\nComparator]
-    A4[Digital Signal\nHIGH/LOW]
+    A3[Analog-to-Digital Comparator]
+    A4[Digital Signal HIGH/LOW]
 
     A1 --> A2
     A2 -->|Resistance Change| A3
@@ -146,8 +146,8 @@ graph LR
   subgraph Processing["PROCESSING STAGE"]
     direction TB
     B1[digitalRead Pin 4]
-    B2[Debounce Filter\n500ms window]
-    B3[Threshold Counter\n3 consecutive reads]
+    B2[Debounce Filter 500ms window]
+    B3[Threshold Counter 3 consecutive reads]
     B4{State Decision}
 
     B1 --> B2
@@ -157,9 +157,9 @@ graph LR
 
   subgraph Output["OUTPUT STAGE"]
     direction TB
-    C1[LED Control\nPins 2 & 3]
-    C2[LCD Update\nI2C Protocol]
-    C3[Serial Logging\nUART 9600]
+    C1[LED Control Pins 2 & 3]
+    C2[LCD Update I2C Protocol]
+    C3[Serial Logging UART 9600]
 
     C1 & C2 & C3
   end
@@ -182,25 +182,25 @@ block-beta
   columns 4
 
   block:SensorBlock["SENSOR INTERFACE"]:1
-    MQSensor["MQ-2 Sensor\n━━━━━━━━\n• SnO2 Element\n• Heater Circuit\n• Comparator\n• Digital Output"]
+    MQSensor["MQ-2 Sensor ━━━━━━━━ • SnO2 Element • Heater Circuit • Comparator • Digital Output"]
   end
 
   block:InputProcessing["INPUT PROCESSING"]:1
-    DigitalRead["digitalRead()\n━━━━━━━━\nPin 4\nMode: INPUT"]
+    DigitalRead["digitalRead() ━━━━━━━━ Pin 4 Mode: INPUT"]
     space
-    SerialLog["Serial Write\n━━━━━━━━\nLog raw value\n9600 baud"]
+    SerialLog["Serial Write ━━━━━━━━ Log raw value 9600 baud"]
   end
 
   block:SafetyLogic["SAFETY LOGIC"]:1
-    Debounce["Debounce Module\n━━━━━━━━\n• Timer: 500ms\n• State tracking\n• Edge detection"]
+    Debounce["Debounce Module ━━━━━━━━ • Timer: 500ms • State tracking • Edge detection"]
     space
-    Threshold["Threshold Gate\n━━━━━━━━\n• Counter: 0-3\n• Auto-reset\n• Alarm trigger"]
+    Threshold["Threshold Gate ━━━━━━━━ • Counter: 0-3 • Auto-reset • Alarm trigger"]
   end
 
   block:ActionLayer["ACTION LAYER"]:1
-    Alarm["Alarm Control\n━━━━━━━━\nactivateAlarm()\ndeactivateAlarm()"]
+    Alarm["Alarm Control ━━━━━━━━ activateAlarm() deactivateAlarm()"]
     space
-    Display["Display Manager\n━━━━━━━━\nupdateDisplay()\nAnti-flicker"]
+    Display["Display Manager ━━━━━━━━ updateDisplay() Anti-flicker"]
   end
 
   MQSensor --> DigitalRead
@@ -222,32 +222,32 @@ block-beta
 
 ```mermaid
 graph TD
-  Start([200ms Loop Tick]) --> Read[Digital Read\nMQ2pin = Pin 4]
+  Start([200ms Loop Tick]) --> Read[Digital Read MQ2pin = Pin 4]
 
-  Read --> Log[Serial Output\nsensorValue]
+  Read --> Log[Serial Output sensorValue]
 
-  Log --> EdgeDetect{Value Changed\nfrom last read?}
+  Log --> EdgeDetect{Value Changed from last read?}
 
-  EdgeDetect -->|Yes| ResetTimer[Reset Debounce Timer\nlastDebounceTime = millis]
+  EdgeDetect -->|Yes| ResetTimer[Reset Debounce Timer lastDebounceTime = millis]
   EdgeDetect -->|No| CheckStable
 
-  ResetTimer --> CheckStable{Stable for\n≥500ms?}
+  ResetTimer --> CheckStable{Stable for ≥500ms?}
 
-  CheckStable -->|No| UpdateState[Update lastGasState\nWait next cycle]
-  CheckStable -->|Yes| CheckValue{Sensor\nValue?}
+  CheckStable -->|No| UpdateState[Update lastGasState Wait next cycle]
+  CheckStable -->|Yes| CheckValue{Sensor Value?}
 
-  CheckValue -->|LOW\nGas Present| Increment[Increment\ngasDetectionCount++]
-  CheckValue -->|HIGH\nAir Safe| Reset[Reset\ngasDetectionCount = 0]
+  CheckValue -->|LOW Gas Present| Increment[Increment gasDetectionCount++]
+  CheckValue -->|HIGH Air Safe| Reset[Reset gasDetectionCount = 0]
 
-  Increment --> ThresholdCheck{Count ≥ 3\nAND\n!gasDetected?}
-  ThresholdCheck -->|Yes| Activate[Set gasDetected = TRUE\nactivateAlarm]
+  Increment --> ThresholdCheck{Count ≥ 3 AND !gasDetected?}
+  ThresholdCheck -->|Yes| Activate[Set gasDetected = TRUE activateAlarm]
   ThresholdCheck -->|No| UpdateState
 
-  Reset --> AlarmCheck{gasDetected\n== TRUE?}
-  AlarmCheck -->|Yes| Deactivate[Set gasDetected = FALSE\ndeactivateAlarm]
+  Reset --> AlarmCheck{gasDetected == TRUE?}
+  AlarmCheck -->|Yes| Deactivate[Set gasDetected = FALSE deactivateAlarm]
   AlarmCheck -->|No| UpdateState
 
-  Activate --> UpdateDisplay[Update Display\nupdateDisplay]
+  Activate --> UpdateDisplay[Update Display updateDisplay]
   Deactivate --> UpdateDisplay
   UpdateState --> UpdateDisplay
 
@@ -307,24 +307,24 @@ sequenceDiagram
 graph TB
   subgraph Layer1["LAYER 1: SOFTWARE DEBOUNCING"]
     direction LR
-    Input1[Raw Sensor\nSignal] --> Timer[500ms Stability\nWindow]
-    Timer --> Output1[Debounced\nSignal]
+    Input1[Raw Sensor Signal] --> Timer[500ms Stability Window]
+    Timer --> Output1[Debounced Signal]
   end
 
   subgraph Layer2["LAYER 2: THRESHOLD GATING"]
     direction LR
-    Input2[Debounced\nSignal] --> Counter[Consecutive\nReading Counter]
+    Input2[Debounced Signal] --> Counter[Consecutive Reading Counter]
     Counter --> Gate{Count ≥ 3?}
-    Gate -->|Yes| Output2[Trigger\nAlarm]
-    Gate -->|No| Wait[Accumulate\nMore Readings]
+    Gate -->|Yes| Output2[Trigger Alarm]
+    Gate -->|No| Wait[Accumulate More Readings]
   end
 
   subgraph Layer3["LAYER 3: STATE MANAGEMENT"]
     direction LR
-    Input3[Alarm\nTrigger] --> StateMachine{Current\nState?}
-    StateMachine -->|Safe → Danger| Activate[Activate Alarm\nRed LED ON]
-    StateMachine -->|Danger → Safe| Deactivate[Deactivate Alarm\nGreen LED ON]
-    StateMachine -->|No Change| Maintain[Maintain\nCurrent State]
+    Input3[Alarm Trigger] --> StateMachine{Current State?}
+    StateMachine -->|Safe → Danger| Activate[Activate Alarm Red LED ON]
+    StateMachine -->|Danger → Safe| Deactivate[Deactivate Alarm Green LED ON]
+    StateMachine -->|No Change| Maintain[Maintain Current State]
   end
 
   Output1 --> Input2
@@ -344,28 +344,28 @@ block-beta
   columns 5
 
   block:Digital["DIGITAL PINS"]:2
-    Pin0["Pin 0\nRX (Serial)"]
-    Pin1["Pin 1\nTX (Serial)"]
-    Pin2["Pin 2\n✅ Green LED"]
-    Pin3["Pin 3\n🚨 Red LED"]
-    Pin4["Pin 4\n🔍 MQ-2 DOUT"]
-    Pin5["Pin 5-13\nUnused"]
+    Pin0["Pin 0 RX (Serial)"]
+    Pin1["Pin 1 TX (Serial)"]
+    Pin2["Pin 2 ✅ Green LED"]
+    Pin3["Pin 3 🚨 Red LED"]
+    Pin4["Pin 4 🔍 MQ-2 DOUT"]
+    Pin5["Pin 5-13 Unused"]
   end
 
   space
 
   block:Analog["ANALOG PINS"]:2
-    A0["A0-A3\nUnused"]
-    A4["A4 (SDA)\n💬 I2C Data"]
-    A5["A5 (SCL)\n⏱️ I2C Clock"]
+    A0["A0-A3 Unused"]
+    A4["A4 (SDA) 💬 I2C Data"]
+    A5["A5 (SCL) ⏱️ I2C Clock"]
   end
 
   block:Power["POWER PINS"]:1
-    VCC["5V\nPower Rail"]
+    VCC["5V Power Rail"]
     space
-    GND["GND\nGround"]
+    GND["GND Ground"]
     space
-    Vin["Vin\nUSB/External"]
+    Vin["Vin USB/External"]
   end
 
   style Digital fill:#4ecdc4,stroke:#1098ad,color:#fff
@@ -380,24 +380,24 @@ block-beta
 ```mermaid
 graph TB
   subgraph Physical["PHYSICAL LAYER"]
-    Air[Ambient Air\nGas Molecules] --> Heater[Heating Element\n~200°C]
-    Heater --> Element[SnO₂ Sensitive\nElement]
+    Air[Ambient Air Gas Molecules] --> Heater[Heating Element ~200°C]
+    Heater --> Element[SnO₂ Sensitive Element]
   end
 
   subgraph Chemical["CHEMICAL LAYER"]
-    Element --> Reaction[Surface Reaction\nO₂⁻ + Gas → Products]
-    Reaction --> Resistance[Resistance\nChange ΔR]
+    Element --> Reaction[Surface Reaction O₂⁻ + Gas → Products]
+    Reaction --> Resistance[Resistance Change ΔR]
   end
 
   subgraph Electronic["ELECTRONIC LAYER"]
-    Resistance --> Divider[Voltage Divider\nCircuit]
-    Divider --> Comparator[Onboard\nComparator]
-    Comparator --> Potentiometer[Threshold\nAdjustment Pot]
-    Potentiometer --> Output{Digital\nOutput}
+    Resistance --> Divider[Voltage Divider Circuit]
+    Divider --> Comparator[Onboard Comparator]
+    Comparator --> Potentiometer[Threshold Adjustment Pot]
+    Potentiometer --> Output{Digital Output}
   end
 
-  Output -->|Gas Present| LOW[DOUT = LOW\n0V]
-  Output -->|Air Clean| HIGH[DOUT = HIGH\n5V]
+  Output -->|Gas Present| LOW[DOUT = LOW 0V]
+  Output -->|Air Clean| HIGH[DOUT = HIGH 5V]
 
   style Physical fill:#ffd8a8,stroke:#fd7e14
   style Chemical fill:#d0bfff,stroke:#7950f2
@@ -415,23 +415,23 @@ block-beta
   columns 3
 
   block:SRAM["SRAM (2KB)"]:1
-    GlobalVars["Global Variables\n━━━━━━━━\n• sensorValue: int\n• gasDetected: bool\n• lastGasState: bool\n• lastDebounceTime: ulong\n• debounceDelay: ulong\n• alarmThreshold: int\n• gasDetectionCount: int\n~28 bytes"]
+    GlobalVars["Global Variables ━━━━━━━━ • sensorValue: int • gasDetected: bool • lastGasState: bool • lastDebounceTime: ulong • debounceDelay: ulong • alarmThreshold: int • gasDetectionCount: int ~28 bytes"]
     space
-    LCD_Buffer["LCD Library\nBuffer\n~100 bytes"]
+    LCD_Buffer["LCD Library Buffer ~100 bytes"]
     space
-    Stack["Stack/Heap\n~1.8KB free"]
+    Stack["Stack/Heap ~1.8KB free"]
   end
 
   block:Flash["Flash (32KB)"]:1
-    Code["Program Code\n━━━━━━━━\n• Main logic\n• Functions\n~4-6 KB"]
+    Code["Program Code ━━━━━━━━ • Main logic • Functions ~4-6 KB"]
     space
-    Libraries["Libraries\n━━━━━━━━\n• Wire.h\n• LiquidCrystal_I2C\n~8-10 KB"]
+    Libraries["Libraries ━━━━━━━━ • Wire.h • LiquidCrystal_I2C ~8-10 KB"]
     space
-    Bootloader["Bootloader\n━━━━━━━━\n0.5 KB reserved"]
+    Bootloader["Bootloader ━━━━━━━━ 0.5 KB reserved"]
   end
 
   block:EEPROM["EEPROM (1KB)"]:1
-    Unused["Unused\n━━━━━━━━\nAvailable for\nconfig storage\nor calibration\ndata"]
+    Unused["Unused ━━━━━━━━ Available for config storage or calibration data"]
   end
 
   style SRAM fill:#a5d8ff,stroke:#1971c2
@@ -481,25 +481,25 @@ gantt
 stateDiagram-v2
     [*] --> Booting: Power On
 
-    Booting --> Safe: 2000ms\n(Initialization)
+    Booting --> Safe: 2000ms (Initialization)
 
-    Safe --> Monitoring: Continuous\n(200ms loops)
+    Safe --> Monitoring: Continuous (200ms loops)
 
-    Monitoring --> Safe: sensorValue = HIGH\n(Immediate)
+    Monitoring --> Safe: sensorValue = HIGH (Immediate)
 
-    Monitoring --> Debouncing: sensorValue = LOW\n(Edge detected)
+    Monitoring --> Debouncing: sensorValue = LOW (Edge detected)
 
-    Debouncing --> Monitoring: Timer < 500ms\n(Wait)
+    Debouncing --> Monitoring: Timer < 500ms (Wait)
 
-    Debouncing --> Counting: Timer ≥ 500ms\n(Stable reading)
+    Debouncing --> Counting: Timer ≥ 500ms (Stable reading)
 
-    Counting --> Safe: sensorValue = HIGH\n(Reset counter)
+    Counting --> Safe: sensorValue = HIGH (Reset counter)
 
-    Counting --> Counting: Count < 3\n(Accumulate)
+    Counting --> Counting: Count < 3 (Accumulate)
 
-    Counting --> Danger: Count ≥ 3\n(~1000ms total)
+    Counting --> Danger: Count ≥ 3 (~1000ms total)
 
-    Danger --> Safe: sensorValue = HIGH\n(500ms debounce)
+    Danger --> Safe: sensorValue = HIGH (500ms debounce)
 
     note right of Safe
         🟢 Green LED ON
@@ -523,19 +523,19 @@ stateDiagram-v2
 
 ## 🛠️ System Configuration Matrix
 
-| **Component** | **Parameter** | **Value** | **Tunable?** | **Impact** |
-|---------------|---------------|-----------|--------------|------------|
-| **MQ-2 Sensor** | Operating Voltage | 5V DC | ❌ No | Fixed by hardware |
-| | Heating Current | ~150 mA | ❌ No | Internal heater |
-| | Digital Threshold | Pot-adjustable | ✅ Yes | Detection sensitivity |
-| | Warm-up Time | 24-48 hours | ❌ No | Initial calibration |
-| **Detection Logic** | Debounce Delay | 500ms | ✅ Yes | False alarm rate |
-| | Alarm Threshold | 3 readings | ✅ Yes | Response time |
-| | Sampling Rate | 200ms (5 Hz) | ✅ Yes | Processing load |
-| **I2C LCD** | Bus Address | 0x27 | ⚠️ Maybe | Hardware-dependent |
-| | Update Rate | ~50ms/char | ❌ No | Library limitation |
-| **Serial** | Baud Rate | 9600 bps | ✅ Yes | Logging speed |
-| **LEDs** | Current Limit | ~20 mA | ⚠️ Maybe | Resistor value |
+| **Component**       | **Parameter**     | **Value**      | **Tunable?** | **Impact**            |
+| ------------------- | ----------------- | -------------- | ------------ | --------------------- |
+| **MQ-2 Sensor**     | Operating Voltage | 5V DC          | ❌ No        | Fixed by hardware     |
+|                     | Heating Current   | ~150 mA        | ❌ No        | Internal heater       |
+|                     | Digital Threshold | Pot-adjustable | ✅ Yes       | Detection sensitivity |
+|                     | Warm-up Time      | 24-48 hours    | ❌ No        | Initial calibration   |
+| **Detection Logic** | Debounce Delay    | 500ms          | ✅ Yes       | False alarm rate      |
+|                     | Alarm Threshold   | 3 readings     | ✅ Yes       | Response time         |
+|                     | Sampling Rate     | 200ms (5 Hz)   | ✅ Yes       | Processing load       |
+| **I2C LCD**         | Bus Address       | 0x27           | ⚠️ Maybe     | Hardware-dependent    |
+|                     | Update Rate       | ~50ms/char     | ❌ No        | Library limitation    |
+| **Serial**          | Baud Rate         | 9600 bps       | ✅ Yes       | Logging speed         |
+| **LEDs**            | Current Limit     | ~20 mA         | ⚠️ Maybe     | Resistor value        |
 
 ---
 
@@ -547,24 +547,24 @@ graph TB
     direction LR
 
     subgraph Top["TOP PANEL"]
-      LCD_Display["16×2 LCD Display\n━━━━━━━━━━━━━━\nGAS LEAK DETECTOR\nStatus: OK"]
+      LCD_Display["16×2 LCD Display ━━━━━━━━━━━━━━ GAS LEAK DETECTOR Status: OK"]
       LED_Array["🟢 Green  🔴 Red"]
     end
 
     subgraph Front["FRONT VENTS"]
-      Vents["Air Intake Vents\n(Mesh-covered)"]
+      Vents["Air Intake Vents (Mesh-covered)"]
     end
 
     subgraph Internal["INTERNAL LAYOUT"]
       direction TB
-      Arduino_Mount["Arduino Board\n(mounted on standoffs)"]
-      Sensor_Mount["MQ-2 Sensor\n(facing vents)"]
-      Wiring["Wiring Harness\n(organized cable mgmt)"]
+      Arduino_Mount["Arduino Board (mounted on standoffs)"]
+      Sensor_Mount["MQ-2 Sensor (facing vents)"]
+      Wiring["Wiring Harness (organized cable mgmt)"]
     end
 
     subgraph Rear["REAR PANEL"]
       USB_Port["USB Power Port"]
-      Serial_Access["Serial Access\n(optional)"]
+      Serial_Access["Serial Access (optional)"]
     end
   end
 
@@ -600,11 +600,11 @@ graph TB
 
   subgraph Future["FUTURE EXTENSIONS"]
     direction TB
-    Buzzer[Piezo Buzzer\nAudible Alarm]
-    WiFi[ESP32/ESP8266\nWiFi/IoT]
-    GSM[SIM800L\nSMS Alerts]
-    SDCard[SD Card Module\nData Logging]
-    Cloud[Cloud Dashboard\nReal-time Monitoring]
+    Buzzer[Piezo Buzzer Audible Alarm]
+    WiFi[ESP32/ESP8266 WiFi/IoT]
+    GSM[SIM800L SMS Alerts]
+    SDCard[SD Card Module Data Logging]
+    Cloud[Cloud Dashboard Real-time Monitoring]
 
     WiFi -.->|MQTT/HTTP| Cloud
     GSM -.->|SMS Gateway| Cloud
@@ -633,6 +633,7 @@ This block diagram documentation provides:
 ✅ **Integration options** — Future expansion possibilities
 
 **Related Documentation:**
+
 - [README.md](README.md) — Complete technical documentation
 - [SIMPLE.md](SIMPLE.md) — Quick reference guide
 - [arduino.ino](arduino.ino) — Source code implementation
